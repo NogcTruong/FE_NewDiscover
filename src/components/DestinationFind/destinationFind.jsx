@@ -97,36 +97,36 @@ const FindDestination = () => {
     fetchAddresses();
   }, []);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    if (!budget || Number(budget) <= 0) {
-      setError("Vui lòng nhập ngân sách hợp lệ");
-      setLoading(false);
-      return;
-    }
-
-    if (!totalDays || Number(totalDays) <= 0) {
-      setError("Vui lòng nhập số ngày hợp lệ");
-      setLoading(false);
-      return;
-    }
-
-    if (!address || address === "Chọn thành phố") {
-      setError("Vui lòng chọn địa điểm");
-      setLoading(false);
-      return;
-    }
-    
-    if (!people || Number(people) <= 0) {
-      setError("Vui lòng nhập số người");
-      setLoading(false);
-      return;
-    }
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
+      setLoading(true);
+      setError(null);
+
+      if (!budget || Number(budget) <= 0) {
+        setError("Vui lòng nhập ngân sách hợp lệ");
+        setLoading(false);
+        return;
+      }
+
+      if (!totalDays || Number(totalDays) <= 0) {
+        setError("Vui lòng nhập số ngày hợp lệ");
+        setLoading(false);
+        return;
+      }
+
+      if (!address || address === "Chọn thành phố") {
+        setError("Vui lòng chọn địa điểm");
+        setLoading(false);
+        return;
+      }
+
+      if (!people || Number(people) <= 0) {
+        setError("Vui lòng nhập số người");
+        setLoading(false);
+        return;
+      }
+
       const myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
 
@@ -145,10 +145,13 @@ const FindDestination = () => {
         method: "POST",
         headers: myHeaders,
         body: userRequireData,
-        redirect: "follow"
+        redirect: "follow",
       };
 
-      const userRequireResponse = await fetch("http://localhost:4000/api/v1/plan/", requestOptions);
+      const userRequireResponse = await fetch(
+        "http://localhost:4000/api/v1/plan/",
+        requestOptions
+      );
 
       const result = await userRequireResponse.json();
       console.log("Server response:", result);
@@ -164,10 +167,13 @@ const FindDestination = () => {
 
       console.log("UserRequire ID:", userRequireId);
 
-      const planResponse = await fetch(`http://localhost:4000/api/v1/plan/create/${userRequireId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-      });
+      const planResponse = await fetch(
+        `http://localhost:4000/api/v1/plan/create/${userRequireId}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       const planResult = await planResponse.json();
       console.log("Plan created:", planResult);
@@ -177,8 +183,16 @@ const FindDestination = () => {
       }
 
       if (planResult.selectedTrips && planResult.selectedTrips.length > 0) {
-        console.log("Final Plan Data:", planResult);
-        navigate("/listDestination", { state: { planData: planResult } });
+        navigate("/listDestination", {
+          state: {
+            planData: {
+              selectedTrips: planResult.selectedTrips,
+              totalCost: planResult.totalCost,
+              quantity: planResult.quantity,
+              userRequireId: userRequireId,
+            },
+          },
+        });
       } else {
         throw new Error("Không tìm thấy kế hoạch phù hợp");
       }
@@ -212,7 +226,9 @@ const FindDestination = () => {
         setQuantities({ ...quantities, [categoryName]: 1 });
       }
     } else {
-      setSelectedCategories(selectedCategories.filter(cat => cat !== categoryName));
+      setSelectedCategories(
+        selectedCategories.filter((cat) => cat !== categoryName)
+      );
       const newQuantities = { ...quantities };
       delete newQuantities[categoryName];
       setQuantities(newQuantities);
@@ -232,7 +248,9 @@ const FindDestination = () => {
           <section className="destination-search">
             <h2>Tìm điểm đến</h2>
             <div className="time-selection">
-              <span className="time-selection-area">Chọn loại khu vực (tối đa 3)</span>
+              <span className="time-selection-area">
+                Chọn loại khu vực (tối đa 3)
+              </span>
               {categoriesLoading ? (
                 <div>Đang tải danh sách loại hình...</div>
               ) : (
@@ -245,7 +263,10 @@ const FindDestination = () => {
                         value={category.name}
                         onChange={(e) => handleCategoryChange(e, category.name)}
                         checked={selectedCategories.includes(category.name)}
-                        disabled={!selectedCategories.includes(category.name) && selectedCategories.length >= 3}
+                        disabled={
+                          !selectedCategories.includes(category.name) &&
+                          selectedCategories.length >= 3
+                        }
                         className="category-checkbox"
                       />
                       <label htmlFor={category._id}>{category.name}</label>

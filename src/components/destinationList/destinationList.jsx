@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 const ListDestination = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const planData = location.state?.planData;
+  const { planData } = location.state || {};
   const [numberOfPeople, setNumberOfPeople] = useState(0);
 
   useEffect(() => {
@@ -30,18 +30,17 @@ const ListDestination = () => {
   const averageRating = calculateAverageRating(planData?.selectedTrips);
 
   const handleLearnMore = (destination, index, dayIndex) => {
-    if (destination) {
-      navigate("/detailDestination", {
-        state: {
-          currentDestination: destination,
-          allDestinations: planData.selectedTrips,
-          currentIndex: index,
-          selectedDay: dayIndex + 1,
-        },
-      });
-    } else {
-      console.log("No destination data available");
-    }
+    navigate("/detailDestination", {
+      state: {
+        currentDestination: destination,
+        allDestinations: planData?.selectedTrips,
+        currentIndex: index,
+        selectedDay: dayIndex + 1,
+        userRequireId: planData?.userRequireId,
+        quantity: planData?.quantity,
+        totalCost: planData?.totalCost,
+      },
+    });
   };
 
   const handleDayClick = (dayIndex) => {
@@ -82,6 +81,21 @@ const ListDestination = () => {
 
   console.log(groupedDestinations);
 
+  // Tổ chức dữ liệu theo ngày
+  const organizeByDays = () => {
+    const trips = planData?.selectedTrips || [];
+    const tripsPerDay = 3;
+    const organized = [];
+
+    for (let i = 0; i < trips.length; i += tripsPerDay) {
+      organized.push(trips.slice(i, i + tripsPerDay));
+    }
+
+    return organized;
+  };
+
+  const organizedTrips = organizeByDays();
+
   return (
     <div className="list-destination-container">
       <div className="container">
@@ -91,7 +105,7 @@ const ListDestination = () => {
           bạn và cho đánh giá cao: Được đánh giá {averageRating} về những địa
           điểm này.
         </p>
-        {groupedDestinations.map((group, dayIndex) => (
+        {organizedTrips.map((group, dayIndex) => (
           <div key={dayIndex} className="day-group">
             <h2 className="day-title" onClick={() => handleDayClick(dayIndex)}>
               Ngày {dayIndex + 1}

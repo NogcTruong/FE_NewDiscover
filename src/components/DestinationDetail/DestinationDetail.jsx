@@ -5,8 +5,14 @@ import { useState, useMemo, useEffect } from "react";
 
 const DetailDestination = () => {
   const location = useLocation();
-  const { currentDestination, allDestinations, selectedDay } =
-    location.state || {};
+  const {
+    currentDestination,
+    allDestinations,
+    selectedDay,
+    userRequireId,
+    quantity,
+    totalCost,
+  } = location.state || {};
   const totalDays = Math.ceil(allDestinations?.length / 3);
   const [activeDay, setActiveDay] = useState(selectedDay || 1);
 
@@ -65,6 +71,49 @@ const DetailDestination = () => {
 
   const handleImageError = (e) => {
     e.target.src = beach;
+  };
+
+  const handleSaveSchedule = async (e) => {
+    e.preventDefault();
+
+    // const userId = localStorage.getItem("userId");
+    const userId = "65f2d1234567890abcdef123";
+    if (!userId || !userRequireId) {
+      alert("Vui lòng đăng nhập để lưu lịch trình!");
+      return;
+    }
+
+    try {
+      const scheduleData = {
+        userId: userId,
+        userRequireId: userRequireId,
+        totalCost: totalCost,
+        quantity: quantity,
+        selectedTrips: allDestinations,
+      };
+
+      const response = await fetch(
+        "http://localhost:4000/api/v1/plan/save-schedule/",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(scheduleData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Lưu lịch trình thành công!");
+      } else {
+        throw new Error(result.message || "Có lỗi xảy ra khi lưu lịch trình");
+      }
+    } catch (error) {
+      console.error("Error saving schedule:", error);
+      alert("Có lỗi xảy ra khi lưu lịch trình: " + error.message);
+    }
   };
 
   return (
@@ -268,8 +317,12 @@ const DetailDestination = () => {
           </div>
         </div>
         <div className="detail-destination-button">
-          <a href="" className="btn btn-detail-destination">
-            Book Now
+          <a
+            href="#"
+            className="btn btn-detail-destination"
+            onClick={handleSaveSchedule}
+          >
+            Lưu lịch trình
           </a>
         </div>
       </div>
